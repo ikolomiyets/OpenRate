@@ -9,6 +9,8 @@ import OpenRate.lang.DigitTree;
 import OpenRate.record.IRecord;
 import OpenRate.resource.CacheFactory;
 import OpenRate.utils.PropertyUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.util.ArrayList;
 
 /**
@@ -40,6 +42,13 @@ public abstract class AbstractBestMatch
   // The zone model object
   private BestMatchCache BM;
 
+    public AbstractBestMatch() {
+        super();
+    }
+
+    public AbstractBestMatch(@Autowired BestMatchCache bm) {
+        this.BM = bm;
+    }
   // -----------------------------------------------------------------------------
   // ------------------ Start of inherited Plug In functions ---------------------
   // -----------------------------------------------------------------------------

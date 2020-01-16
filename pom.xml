@@ -163,7 +163,7 @@
 		<version.hsql.connector>2.2.4</version.hsql.connector>
 		<version.log4j>2.8.2</version.log4j>
 		<version.oro>2.0.8</version.oro>
-		<org.springframework.version>3.0.5.RELEASE</org.springframework.version>
+		<org.springframework.version>5.2.1.RELEASE</org.springframework.version>
 	</properties>
 
 	<dependencies>
@@ -289,7 +289,14 @@
 			<version>5.7.0</version>
 		</dependency>
 
-		<!-- <dependency> <groupId>drools</groupId> <artifactId>drools-compiler</artifactId> 
+		<!-- Hazelcast cache -->
+		<dependency>
+			<groupId>com.hazelcast</groupId>
+			<artifactId>hazelcast</artifactId>
+			<version>3.12.4</version>
+		</dependency>
+
+		<!-- <dependency> <groupId>drools</groupId> <artifactId>drools-compiler</artifactId>
 			<version>3.0.4</version> <exclusions> <exclusion> <groupId>org.apache.commons</groupId> 
 			<artifactId>commons-jci-core</artifactId> </exclusion> </exclusions> </dependency> 
 			<dependency> <groupId>drools</groupId> <artifactId>drools-decisiontables</artifactId> 
@@ -328,9 +335,8 @@
 		<dependency>
 			<groupId>com.oracle</groupId>
 			<artifactId>ojdbc6</artifactId>
-			<version>6.0</version>
-			<type>jar</type>
-		</dependency>			
+			<version>12.1.0.2</version>
+		</dependency>
 	</dependencies>
 
 	<reporting>

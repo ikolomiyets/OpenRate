@@ -49,8 +49,16 @@ import java.util.Iterator;
  *
  * @author i.sparkes
  */
-public class RateCache
-        extends AbstractSyncLoaderCache {
+public class RateCache extends AbstractSyncLoaderCache {
+  public RateCache() {
+    super();
+  }
+
+  public RateCache(String fileName) throws InitializationException {
+    this();
+    this.cacheDataFile = fileName;
+    this.loadDataFromFile();
+  }
 
   /**
    * This stores all the cacheable data necessary for the definition of the rate

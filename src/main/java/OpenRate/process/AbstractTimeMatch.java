@@ -22,6 +22,12 @@ import java.util.GregorianCalendar;
  */
 public abstract class AbstractTimeMatch
         extends AbstractPlugIn {
+  public AbstractTimeMatch() {
+    super();
+
+    // Get the calendar instance
+    tmpCal = (GregorianCalendar) Calendar.getInstance();
+  }
   // get the Cache manager for the zone map
   // We assume that there is one cache manager for
   // the zone, time and service maps, just to simplify

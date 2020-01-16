@@ -2,19 +2,21 @@
 
 package OpenRate.lang;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 
 /**
  * Class to build and search a tree list, for example in best match searches
  */
-public class DigitTree
-{
+public class DigitTree implements Serializable {
+
   /**
    * The default return when there is no digit tree match
    */
   public static final String NO_DIGIT_TREE_MATCH = "NOMATCH";
+    private static final long serialVersionUID = 5375391146587861666L;
 
-  private Node               root;
+    private Node               root;
   private ArrayList<String>  nullResultList;
   private int                nodeCount           = 0;
 
@@ -147,9 +149,10 @@ public class DigitTree
  /**
   * Definition of the node object
   */
-  private class Node
+  private class Node implements Serializable
   {
-    private ArrayList<String> Results = null;
+      private static final long serialVersionUID = -7630733586937759116L;
+      private ArrayList<String> Results = null;
     private Node[] children = new Node[10];
   }
 

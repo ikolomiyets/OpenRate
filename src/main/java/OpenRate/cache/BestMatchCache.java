@@ -2,12 +2,17 @@
 
 package OpenRate.cache;
 
-import OpenRate.OpenRate;
 import OpenRate.configurationmanager.ClientManager;
 import OpenRate.db.DBUtil;
 import OpenRate.exception.InitializationException;
 import OpenRate.lang.DigitTree;
 import OpenRate.logging.LogUtil;
+import com.hazelcast.core.HazelcastInstance;
+import com.hazelcast.core.IMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -15,7 +20,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 
 /**
@@ -43,16 +47,16 @@ import java.util.Iterator;
  *
  * @author i.sparkes
  */
-public class BestMatchCache
-     extends AbstractSyncLoaderCache
-{
- /**
+public class BestMatchCache extends AbstractSyncLoaderCache {
+  private static Logger logger = LoggerFactory.getLogger(BestMatchCache.class);
+
+  /**
   * This stores all the cacheable data. The DigitTree class is
   * a way of storing numeric values for a best match search.
   * The cost of a search is linear with the number of digits
   * stored in the search tree
   */
-  protected HashMap<String, DigitTree> groupCache;
+  protected IMap<String, DigitTree> groupCache;
 
   // List of Services that this Client supports
   private final static String SERVICE_OBJECT_COUNT = "ObjectCount";
@@ -68,17 +72,22 @@ public class BestMatchCache
   * is therefore performed within the group, retrieving the best
   * match for that group.
   */
-  public BestMatchCache()
+  public BestMatchCache(IMap<String, DigitTree> cache)
   {
     super();
 
     // Initialise the group cache
-    groupCache = new HashMap<>(50);
+    groupCache = cache;
 
     // create the null result
     noResult.add(DigitTree.NO_DIGIT_TREE_MATCH);
   }
 
+  public BestMatchCache(IMap<String, DigitTree> cache, String fileName) throws InitializationException {
+    this(cache);
+    this.cacheDataFile = fileName;
+    this.loadDataFromFile();
+  }
 // -----------------------------------------------------------------------------
 // ------------------ Start of inherited Plug In functions ---------------------
 // -----------------------------------------------------------------------------
@@ -100,7 +109,7 @@ public class BestMatchCache
     int               formFactor = 0;
 
     // Log that we are starting the loading
-    OpenRate.getOpenRateFrameworkLog().info("Starting Best Match Cache Loading from File for cache <" + getSymbolicName() + ">");
+    logger.info("Starting Best Match Cache Loading from File for cache <" + getSymbolicName() + ">");
 
     // Try to open the file
     try
@@ -177,14 +186,14 @@ public class BestMatchCache
             message = "Best Match Data Loading: <" + ZonesLoaded +
                   "> configurations loaded for <" + getSymbolicName() + "> from <" +
                   cacheDataFile + ">";
-            OpenRate.getOpenRateFrameworkLog().info(message);
+            logger.info(message);
           }
         }
       }
     }
     catch (IOException ex)
     {
-      OpenRate.getOpenRateFrameworkLog().fatal(
+      logger.error(
             "Error reading input file <" + cacheDataSourceName +
             "> in record <" + ZonesLoaded + ">. IO Error.");
     }
@@ -201,11 +210,11 @@ public class BestMatchCache
       }
     }
 
-    OpenRate.getOpenRateFrameworkLog().info(
+    logger.info(
           "Best Match Data Loading completed. <" + ZonesLoaded +
           "> configuration lines loaded for <" + getSymbolicName() + " > from <"
           + cacheDataFile + ">");
-    OpenRate.getOpenRateFrameworkLog().info(
+    logger.info(
           "Loaded <3> base fields and <" + (formFactor - 3) +
           "> additional data fields");
   }
@@ -226,7 +235,7 @@ public class BestMatchCache
     int               formFactor = 0;
 
     // Log that we are starting the loading
-    OpenRate.getOpenRateFrameworkLog().info("Starting Best Match Cache Loading from DB for <" + getSymbolicName() + ">");
+    logger.info("Starting Best Match Cache Loading from DB for <" + getSymbolicName() + ">");
 
     // Try to open the DS
     JDBCcon = DBUtil.getConnection(cacheDataSourceName);
@@ -242,7 +251,7 @@ public class BestMatchCache
     catch (SQLException Sex)
     {
       message = "Error performing SQL for retieving Best Match data. message <" + Sex.getMessage() + ">";
-      OpenRate.getOpenRateFrameworkLog().fatal(message);
+      logger.error(message);
       throw new InitializationException(message,getSymbolicName());
     }
 
@@ -288,7 +297,7 @@ public class BestMatchCache
           message = "Best Match Data Loading: <" + ZonesLoaded +
                 "> configurations loaded for <" + getSymbolicName() + "> from <" +
                 cacheDataSourceName + ">";
-          OpenRate.getOpenRateFrameworkLog().info(message);
+          logger.info(message);
         }
       }
     }
@@ -312,11 +321,11 @@ public class BestMatchCache
       throw new InitializationException(message,ex,getSymbolicName());
     }
 
-    OpenRate.getOpenRateFrameworkLog().info(
+    logger.info(
           "Best Match Data Loading completed. <" + ZonesLoaded +
           "> configuration lines loaded for <" + getSymbolicName() + "> from <" +
           cacheDataSourceName + ">");
-    OpenRate.getOpenRateFrameworkLog().info("Loaded <3> base fields and <" + (formFactor - 3) +
+    logger.info("Loaded <3> base fields and <" + (formFactor - 3) +
           "> additional data fields");
   }
 
@@ -336,7 +345,7 @@ public class BestMatchCache
     ArrayList<String> tmpMethodResult;
 
     // Log that we are starting the loading
-    OpenRate.getOpenRateFrameworkLog().info("Starting Best Match Cache Loading from Method for <" + getSymbolicName() + ">");
+    logger.info("Starting Best Match Cache Loading from Method for <" + getSymbolicName() + ">");
 
     // Execute the user domain method
     Collection<ArrayList<String>> methodLoadResultSet;
@@ -385,15 +394,15 @@ public class BestMatchCache
         message = "Best Match Data Loading: <" + ZonesLoaded +
               "> configurations loaded for <" + getSymbolicName() + "> from <" +
               cacheDataSourceName + ">";
-        OpenRate.getOpenRateFrameworkLog().info(message);
+        logger.info(message);
       }
     }
 
-    OpenRate.getOpenRateFrameworkLog().info(
+    logger.info(
           "Best Match Cache Data Loading completed. " + ZonesLoaded +
           " configuration lines loaded from <" + cacheDataSourceName +
           ">");
-    OpenRate.getOpenRateFrameworkLog().info(
+    logger.info(
           "Loaded <3> base fields and <" + (formFactor - 3) +
           "> additional data fields");
   }
@@ -421,14 +430,10 @@ public class BestMatchCache
       // Create the new Digit Tree
       DigitTree prefixCache = new DigitTree();
 
-      groupCache.put(mapGroup, prefixCache);
-
-      try
-      {
+      try {
         prefixCache.addPrefix(prefix, resultList);
-      }
-      catch (ArrayIndexOutOfBoundsException aiex)
-      {
+        groupCache.put(mapGroup, prefixCache);
+      } catch (ArrayIndexOutOfBoundsException aiex) {
         message = "Error Adding Prefix <" + prefix + "> to group <" + mapGroup + "> in module <" + getSymbolicName() + ">";
         throw new InitializationException(message,getSymbolicName());
       }
@@ -441,11 +446,12 @@ public class BestMatchCache
       try
       {
         prefixCache.addPrefix(prefix, resultList);
+        groupCache.put(mapGroup, prefixCache);
       }
       catch (ArrayIndexOutOfBoundsException ex)
       {
         message = "Error Adding Prefix <" + prefix + "> to model <" + mapGroup + "> in module <" + getSymbolicName() + ">";
-        OpenRate.getOpenRateFrameworkLog().fatal(message);
+        logger.error(message);
         throw new InitializationException(message,getSymbolicName());
       }
     }
@@ -522,15 +528,15 @@ public class BestMatchCache
     String      Helper;
     Iterator<String>    GroupIter;
 
-    OpenRate.getOpenRateFrameworkLog().info("Dumping Map Data for BestMatchCache <" + getSymbolicName() + ">");
-    OpenRate.getOpenRateFrameworkLog().info("Groups:");
+    logger.info("Dumping Map Data for BestMatchCache <" + getSymbolicName() + ">");
+    logger.info("Groups:");
 
     // Iterate thorough the entries in the group
     GroupIter = groupCache.keySet().iterator();
     while (GroupIter.hasNext())
     {
       Helper = GroupIter.next();
-      OpenRate.getOpenRateFrameworkLog().info("  " + Helper);
+      logger.info("  " + Helper);
     }
 
     // Now dump the data
@@ -538,7 +544,7 @@ public class BestMatchCache
     while (GroupIter.hasNext())
     {
       Helper = GroupIter.next();
-      OpenRate.getOpenRateFrameworkLog().info("Dumping group map data for <" + Helper + ">");
+      logger.info("Dumping group map data for <" + Helper + ">");
 
       // The rest of the data is horrible to extract - a problem for a rainy day
     }
@@ -625,7 +631,7 @@ public class BestMatchCache
 
     if (ResultCode == 0)
     {
-      OpenRate.getOpenRateFrameworkLog().debug(LogUtil.LogECICacheCommand(getSymbolicName(), Command, Parameter));
+      logger.debug(LogUtil.LogECICacheCommand(getSymbolicName(), Command, Parameter));
 
       return "OK";
     }

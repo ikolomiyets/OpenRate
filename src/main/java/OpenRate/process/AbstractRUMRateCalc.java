@@ -41,7 +41,7 @@ public abstract class AbstractRUMRateCalc extends AbstractRateCalc {
   private ICacheManager CMRR = null;
 
   // The zone model object
-  private RUMRateCache RRC;
+  protected RUMRateCache RRC;
 
   // this tells us whether to deal with the exception ourself, pr pass it to the
   // parent module for handling
