@@ -5,3 +5,5 @@ Semaphore.txt_*
 .DS_Store
 *.log
 .DS_Store
+.idea
+*.iml
